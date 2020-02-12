@@ -3,8 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/BurntSushi/toml"
-	lez "github.com/NickBrisebois/BigLezChatBot/internal"
-	"go/types"
+	scraper "github.com/NickBrisebois/BigLezChatBot/scraper"
 	"log"
 )
 
@@ -12,11 +11,16 @@ func main() {
 	configPath := flag.String("config", "./config.toml", "Path to config.toml")
 	flag.Parse()
 
-	var config types.Config
+	var config scraper.Config
 	if _, err := toml.DecodeFile(*configPath, &config); err != nil {
 		log.Fatal(err.Error())
 	}
 
-	bot.InitBot(&config)
+	lezScraper := scraper.NewServerScraper(&config)
+	err := lezScraper.InitScraper()
+
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 
 }
