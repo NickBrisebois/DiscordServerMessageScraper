@@ -1,9 +1,11 @@
 package biglez_scraper
 
 import (
-	"fmt"
+	"bufio"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"os"
+	"sync"
 )
 
 type ServerScraper struct {
@@ -32,40 +34,68 @@ func (sc *ServerScraper) InitScraper() error {
 		return err
 	}
 
+	// Get an array of text channels
+	var textChannels []*discordgo.Channel
 	for _, guild := range sc.sesh.State.Guilds {
 		channels, _ := sc.sesh.GuildChannels(guild.ID)
-		fmt.Println(channels)
+		for _, c := range channels {
+			if c.Type != discordgo.ChannelTypeGuildText {
+				continue
+			}else {
+				textChannels = append(textChannels, c)
+			}
+
+		}
 	}
 
-	//sc.BulkDownloadMessages()
+	dumpPath := "./dump"
+	os.Mkdir(dumpPath, os.ModePerm)
+
+	var wg sync.WaitGroup
+	for _, channel := range textChannels {
+		log.Printf("Starting dump for %s\n", channel.Name)
+		wg.Add(1)
+		go sc.BulkDownloadMessages(&wg, channel, dumpPath)
+	}
+	wg.Wait()
 
 	sc.sesh.Close()
 	return nil
 }
 
-func (sc *ServerScraper) BulkDownloadMessages() {
-	startID := sc.botConf.StartMessageID
+func (sc *ServerScraper) BulkDownloadMessages(wg *sync.WaitGroup, channel *discordgo.Channel, dumpPath string) {
+	defer wg.Done()
 	var messages []*discordgo.Message
 	var err error
+	startID := ""
+
+	var dumpFile *os.File
+	dumpFile, err = os.Create(dumpPath + "/dump-" + channel.Name + ".txt")
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	defer dumpFile.Close()
+
+	dumpWriter := bufio.NewWriter(dumpFile)
 
 	for {
 		blankLineCount := 0
-		messages, err = sc.sesh.ChannelMessages("565663569132257283", 100, startID, "", "")
+		messages, err = sc.sesh.ChannelMessages(channel.ID, 100, startID, "", "")
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		for counter, msg := range messages {
+		for _, msg := range messages {
 			if msg.Content == "" {
 				blankLineCount++
 			}else {
-				fmt.Println(msg.Content)
-			}
-			if counter == 99 {
-				startID = msg.ID
+				dumpWriter.WriteString(msg.Content + "\n")
 			}
 		}
 		if blankLineCount == 10 {
 			return
 		}
 	}
+
+	log.Printf("Done dump for %s\n", channel.Name)
+	dumpWriter.Flush()
 }
