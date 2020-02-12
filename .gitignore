@@ -1,3 +1,4 @@
 config.toml
 *.txt
 .idea
+DiscordServerMessageScraper

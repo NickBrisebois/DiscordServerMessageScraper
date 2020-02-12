@@ -79,20 +79,21 @@ func (sc *ServerScraper) BulkDownloadMessages(wg *sync.WaitGroup, channel *disco
 	dumpWriter := bufio.NewWriter(dumpFile)
 
 	for {
-		blankLineCount := 0
 		messages, err = sc.sesh.ChannelMessages(channel.ID, 100, startID, "", "")
+
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		for _, msg := range messages {
-			if msg.Content == "" {
-				blankLineCount++
-			}else {
+		for counter, msg := range messages {
+			if msg.ID == startID {
+				return
+			}else if counter == 99 {
+				startID = msg.ID
+			}
+
+			if msg.Content != "" {
 				dumpWriter.WriteString(msg.Content + "\n")
 			}
-		}
-		if blankLineCount == 10 {
-			return
 		}
 	}
 
