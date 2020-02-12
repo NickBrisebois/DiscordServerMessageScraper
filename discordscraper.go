@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/BurntSushi/toml"
-	scraper "github.com/NickBrisebois/BigLezChatBot/scraper"
+	scraper "github.com/NickBrisebois/DiscordServerMessageScraper/scraper"
 	"log"
 )
 
@@ -16,8 +16,8 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	lezScraper := scraper.NewServerScraper(&config)
-	err := lezScraper.InitScraper()
+	scraper := scraper.NewServerScraper(&config)
+	err := scraper.InitScraper()
 
 	if err != nil {
 		log.Fatalf(err.Error())
