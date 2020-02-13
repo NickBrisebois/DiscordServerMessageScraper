@@ -67,36 +67,40 @@ func (sc *ServerScraper) BulkDownloadMessages(wg *sync.WaitGroup, channel *disco
 	defer wg.Done()
 	var messages []*discordgo.Message
 	var err error
-	startID := ""
 
+	// Create dump file to write to
 	var dumpFile *os.File
 	dumpFile, err = os.Create(dumpPath + "/dump-" + channel.Name + ".txt")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	defer dumpFile.Close()
-
 	dumpWriter := bufio.NewWriter(dumpFile)
 
-	for {
-		messages, err = sc.sesh.ChannelMessages(channel.ID, 100, startID, "", "")
-
+	doneDumping := false
+	beforeID := ""
+	for !doneDumping {
+		// Get all the messages we can (max is a limit per API call)
+		messages, err = sc.sesh.ChannelMessages(channel.ID, 100, beforeID, "", "")
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		for counter, msg := range messages {
-			if msg.ID == startID {
-				return
-			}else if counter == 99 {
-				startID = msg.ID
-			}
 
-			if msg.Content != "" {
-				dumpWriter.WriteString(msg.Content + "\n")
-			}
+		if len(messages) == 0 {
+			doneDumping = true
+			break
+		}
+
+		// Loop through all the messages we fetched
+		for _, msg := range messages {
+			// Grab the last ID to get more messages from before
+			beforeID = msg.ID
+			dumpWriter.WriteString(msg.Content + "\n")
 		}
 	}
 
 	log.Printf("Done dump for %s\n", channel.Name)
 	dumpWriter.Flush()
 }
+
+
