@@ -5,15 +5,10 @@ This bot, when setup, will scrape every message ever posted to the server it has
 All logs will be dumped into a folder ./dump/ with the name {channel-name}-dump.txt. 
 
 ### Building
-
-To build you need these go packages:
-
-    github.com/BurntSushi/toml
-    github.com/bwmarrin/discordgo
     
 To build all you need to do is CD into the folder and run:
 
-    go build
+    make build
     
 ### Running
 
