@@ -1,4 +1,4 @@
-package biglez_scraper
+package discord_scraper
 
 import (
 	"bufio"
@@ -20,7 +20,7 @@ func NewServerScraper(config *Config) *ServerScraper {
 }
 
 func (sc *ServerScraper) InitScraper() error {
-	log.Println("Initializing The Big LezTM Server Scraper")
+	log.Println("Initializing Discord Server Scraper")
 
 	var err error
 	sc.sesh, err = discordgo.New("Bot " + sc.botConf.DiscordToken)

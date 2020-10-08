@@ -18,8 +18,8 @@ func main() {
 	flag.Parse()
 
     if *versionFlag {
-        fmt.Println("Version:   " + version)
-        fmt.Println("Commit:    " + gitCommit)
+        fmt.Println("Version: " + version)
+        fmt.Println("Commit: " + gitCommit)
         fmt.Println("Built: " + buildTime)
         return;
     }

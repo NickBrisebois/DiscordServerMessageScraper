@@ -1,4 +1,4 @@
-package biglez_scraper
+package discord_scraper
 
 type Config struct {
 	DiscordToken string
